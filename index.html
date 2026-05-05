@@ -3,64 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>公主醒覺系統 | Mirror Queen</title>
+    <title>公主重生倒數 | Mirror Queen</title>
     <style>
-        /* 定義兩套風格嘅核心變量 */
+        /* 預設基礎變量 */
         :root {
-            --bg-color: #fff1f4;
-            --container-bg: #ffffff;
-            --accent-color: #ff66a3;
-            --text-main: #666666;
-            --box-border: 2px dashed #ff66a3;
-            --btn-grad: linear-gradient(135deg, #ffb6c1, #ff66a3);
-            --glow: rgba(255, 102, 163, 0.2);
+            --p-ratio: 0; /* 0 為最粉, 1 為最黑 */
+            --dynamic-bg: #fff1f4;
+            --dynamic-text: #666;
+            --dynamic-accent: #ff66a3;
+            --dynamic-card: #ffffff;
         }
 
-        /* 【漸變暗黑風 - 全面黑化】 */
-        body.dark-mode {
-            --bg-color: linear-gradient(180deg, #0a0a0a 0%, #2a0000 100%);
-            --container-bg: #151515;
-            --accent-color: #ff0000;
-            --text-main: #dddddd;
-            --box-border: 2px solid #ff0000;
-            --btn-grad: linear-gradient(135deg, #4a0000, #ff0000);
-            --glow: rgba(255, 0, 0, 0.5);
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, "PingFang HK", sans-serif; transition: all 0.5s ease-in-out; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, "PingFang HK", sans-serif; transition: background 0.3s, color 0.3s; }
         
-        body { background: var(--bg-color); background-attachment: fixed; margin: 0; display: flex; justify-content: center; min-height: 100vh; color: var(--text-main); }
+        body { 
+            background: var(--dynamic-bg); 
+            background-attachment: fixed;
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            min-height: 100vh; 
+            color: var(--dynamic-text);
+        }
+
         .app-container { width: 100%; max-width: 414px; padding: 25px 20px; display: flex; flex-direction: column; align-items: center; }
 
         /* 能量條 */
-        .magic-bar { background: var(--btn-grad); color: white; width: 100%; height: 45px; border-radius: 25px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; margin-bottom: 30px; box-shadow: 0 4px 15px var(--glow); }
+        .magic-bar { 
+            background: var(--dynamic-accent); 
+            color: white; width: 100%; height: 45px; border-radius: 25px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; font-size: 14px; margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
 
-        /* 重生框 */
-        .rebirth-box { width: 100%; border: var(--box-border); border-radius: 40px; padding: 25px; background: var(--container-bg); text-align: center; margin-bottom: 30px; box-shadow: 0 10px 30px var(--glow); }
-        .rebirth-title { color: var(--accent-color); font-weight: 800; font-size: 14px; margin-bottom: 10px; letter-spacing: 1px; }
-        .countdown-display { color: var(--accent-color); font-size: 65px; font-weight: 200; line-height: 1.1; }
-        .countdown-display span { font-size: 20px; margin-left: 5px; font-weight: 400; }
-        .date-picker { border: none; color: var(--accent-color); font-size: 13px; text-align: center; width: 100%; outline: none; margin-top: 15px; background: transparent; cursor: pointer; border-top: 1px solid rgba(128,128,128,0.2); padding-top: 10px; }
+        /* 核心倒數框 */
+        .rebirth-box { 
+            width: 100%; 
+            border: 2px dashed var(--dynamic-accent); 
+            border-radius: 40px; padding: 25px; 
+            background: var(--dynamic-card); 
+            text-align: center; margin-bottom: 30px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        
+        .countdown-display { color: var(--dynamic-accent); font-size: 65px; font-weight: 200; line-height: 1.1; }
+        .date-picker { border: none; color: var(--dynamic-accent); font-size: 13px; text-align: center; width: 100%; outline: none; margin-top: 15px; background: transparent; cursor: pointer; border-top: 1px solid rgba(128,128,128,0.2); padding-top: 10px; }
 
-        /* 系統標題 */
-        .system-title { color: var(--accent-color); font-size: 28px; font-weight: 900; margin-bottom: 25px; letter-spacing: 3px; text-transform: uppercase; }
+        .input-card { background: var(--dynamic-card); width: 100%; border-radius: 30px; padding: 25px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        textarea { width: 100%; height: 120px; border: none; font-size: 17px; outline: none; background: transparent; color: var(--dynamic-text); resize: none; }
 
-        /* 輸入卡片 */
-        .input-card { background: var(--container-bg); width: 100%; border-radius: 30px; padding: 25px; box-shadow: 0 15px 40px var(--glow); margin-bottom: 30px; }
-        textarea { width: 100%; height: 120px; border: none; font-size: 17px; outline: none; background: transparent; color: var(--text-main); resize: none; line-height: 1.6; }
+        .btn-action { background: var(--dynamic-accent); color: white; border: none; padding: 20px; border-radius: 50px; font-size: 18px; font-weight: 800; width: 100%; cursor: pointer; }
 
-        /* 地獄按鈕 */
-        .btn-hell { background: var(--btn-grad); color: white; border: none; padding: 20px; border-radius: 50px; font-size: 18px; font-weight: 800; width: 100%; box-shadow: 0 10px 25px var(--glow); cursor: pointer; letter-spacing: 2px; }
-        .btn-hell:active { transform: scale(0.98); }
-
-        /* 支付驗證 */
-        #pay-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 1000; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; }
-        .pay-qr { width: 240px; border-radius: 20px; border: 3px solid #fff; margin-bottom: 25px; box-shadow: 0 0 30px var(--accent-color); }
-        .file-input-btn { background: var(--accent-color); color: white; padding: 15px 30px; border-radius: 15px; font-weight: bold; cursor: pointer; display: inline-block; width: 100%; margin-top: 10px; }
-
-        /* 語錄全屏 */
-        #truth-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px; }
-        #truth-text { color: white; font-size: 26px; font-weight: 800; line-height: 1.7; text-shadow: 0 0 15px var(--accent-color); }
+        /* 支付與語錄層 */
+        #pay-overlay, #truth-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; background: #000; color: white; }
     </style>
 </head>
 <body id="mainBody">
@@ -68,121 +64,111 @@
 <div class="app-container">
     <div class="magic-bar" id="energyStatus">✨ 魔法能量：5</div>
 
-    <div class="rebirth-box" id="statusBox">
-        <div class="rebirth-title" id="statusTitle">🎀 距離重生剩餘</div>
-        <div class="countdown-display" id="daysLabel">00<span>天</span></div>
-        <input type="date" id="targetDate" class="date-picker" onchange="updateSystem()">
+    <div class="rebirth-box">
+        <div style="font-size:12px; font-weight:800; margin-bottom:10px;" id="boxHint">🎀 距離重生剩餘</div>
+        <div class="countdown-display" id="daysLabel">00</div>
+        <input type="date" id="targetDate" class="date-picker" onchange="applyTimeErosion()">
     </div>
 
-    <div class="system-title" id="headerTitle">公主醒覺系統</div>
+    <h2 id="titleText" style="margin-bottom:20px; letter-spacing:2px;">公主醒覺系統</h2>
 
     <div class="input-card">
-        <textarea id="userInput" placeholder="又有咩童話幻覺？"></textarea>
+        <textarea id="userInput" placeholder="輸入你嘅童話幻想..."></textarea>
     </div>
 
-    <button class="btn-hell" id="actionBtn" onclick="processHell()">🪄 準備好落地獄未？</button>
+    <button class="btn-action" onclick="checkReality()">🪄 接受現實洗禮</button>
 </div>
 
-<!-- 支付核實層 -->
+<!-- 支付牆 -->
 <div id="pay-overlay">
-    <h2 style="color:#ff0000; letter-spacing: 2px;">能量耗盡 ‧ 嚴格審核</h2>
-    <p style="color:#888; font-size:13px; margin-bottom:20px;">請 PayMe $5 買 5 次清醒，上傳截圖後系統將比對交易紀錄</p>
-    <img src="payme.png.jpeg" class="pay-qr">
-    <div style="width:100%; max-width:300px;">
-        <label for="upload" class="file-input-btn">📸 選取過數截圖</label>
-        <input type="file" id="upload" style="display:none" onchange="onFileSelect()">
-        <div id="fileInfo" style="color:#555; font-size:12px; margin: 10px 0;">未選擇檔案</div>
-        <button id="submitPay" class="btn-hell" style="opacity:0.3; font-size:14px;" onclick="verifyLoop()" disabled>提交人工審核</button>
-    </div>
-    <p style="color:#333; margin-top:30px; font-size:12px;" onclick="location.reload()">[ 暫時放棄 ]</p>
+    <h2 style="color:red;">能量已枯竭</h2>
+    <p>日期愈近，代價愈重。請支付以換取最後嘅清醒。</p>
+    <img src="payme.png.jpeg" style="width:200px; border:2px solid white; margin:20px 0;">
+    <input type="file" id="upload" style="display:none" onchange="document.getElementById('subBtn').disabled=false">
+    <label for="upload" style="background:#333; padding:15px; border-radius:10px; width:100%; display:block;">📸 上傳過數截圖</label>
+    <button id="subBtn" class="btn-action" style="margin-top:20px;" onclick="resetEnergy()" disabled>提交核實</button>
 </div>
 
-<!-- 狠話顯示層 -->
+<!-- 語錄層 -->
 <div id="truth-overlay" onclick="this.style.display='none'">
-    <div style="color:var(--accent-color); font-size:11px; letter-spacing:6px; margin-bottom:20px;">BLOODY REALITY</div>
-    <div id="truth-text"></div>
-    <div style="color:#222; margin-top:70px; font-size:11px;">( 點擊畫面 繼續沉淪 )</div>
+    <div id="truth-content" style="font-size:24px; font-weight:900; line-height:1.6;"></div>
+    <div style="margin-top:50px; font-size:10px; color:#444;">點擊畫面 回到現實</div>
 </div>
 
 <script>
-    let energyUsed = parseInt(localStorage.getItem('mq_energy')) || 0;
+    let usedCount = parseInt(localStorage.getItem('mq_used')) || 0;
+    const maxDays = 30; // 預設 30 日開始變色
 
-    // 300 句絕不重樣、純廣東話、無數字語錄庫
-    const library = [
-        "佢唔係忙，佢只係唔想理你呢個廢物。", "你以為係深情？喺佢眼中係騷擾呀。", "望下塊鏡，你宜家個樣真係好卑微。", "人哋一早換咗新伴侶，得你仲喺度守墓。", "佢連分手都廢事講，就係想你自己消失。", "你嘅執著，對佢嚟講只係負擔。", "佢宜家同第個打得火熱，你仲喺度凝住佢？", "你只係佢無聊時嘅消遣，唔好當自己係主角。", "再送多一條訊息，你就係狗。", "醒啦，佢無咗你生活得仲精彩。", "你嘅付出係你自願，人哋無義務要還。", "佢嘅冷暴力，就係想你自己識趣走人。", "你以為嘅回憶，人哋一早掉咗落垃圾桶。", "佢連頭像都換咗，你仲喺度解讀佢個簽名？", "唔好再等喇，佢根本無打算搵返你。", "佢唔覆你，係因為佢正同緊更重要嘅人傾偈。", "你嘅自我感動，對佢嚟講只係一個笑話。", "輸咗就認，唔好輸埋你個人格。", "你咁卑微，邊個會愛你？", "佢對你嘅好感一早過咗期，仲喺度等咩？",
-        "佢對你嘅殘忍，就係佢對你最後嘅溫柔。", "唔好再數佢嘅好，佢嘅好係用嚟呃下一個傻仔。", "你嘅價值唔係由佢決定，但你竟然畀佢踩到變負數。", "佢連你死咗都未必會去葬禮，你仲問佢食咗飯未？", "醒啦，你嘅等待只係一場慢性自殺。", "佢嘅承諾係寫喺沙上面嘅，一吹就散。", "你以為自己係佢嘅港灣？其實你只係個臨時位。", "再諗佢，你就係對唔住你自己。", "你咁慘係因為你唔肯放過你自己。", "你值得更好，但首先你要識得醒。", "佢宜家好快樂，因為你終於唔再煩住佢。", "你以為佢會內疚？佢只會覺得甩咗你真係好彩。", "你嘅愛係一種自殘，快啲放手啦。", "佢連同你講聲再見都要諗過，費事你又發癲。", "醒啦，世界咁大，唔係得佢一個垃圾。", "你以為自己係唯一？其實你只係其中一個兵。", "佢一早已經將你當成路人，得你仲喺度扮主角。", "你嘅等待係對自己嘅殘忍，快啲停止啦。", "佢連睇你一眼都覺得攰，你仲喺度賣力表演？", "你以為自己係特別？其實你同其他傻仔無分別。",
-        "佢一早已經將你 delete 咗，你仲喺度 backup？", "你以為係浪漫？其實係驚嚇。", "唔好再諗佢，佢連狗都唔如。", "佢對你嘅冷漠，係宣告你嘅死亡。", "醒啦，你仲未夠痛咩？", "佢嘅世界，你只係一個污點。", "你以為係愛？係執念呀。", "唔好再等喇，佢已經結婚喇。", "佢對你嘅狠心，係你重生嘅起點。", "醒啦，你仲有父母愛，唔好為個渣男死。", "佢一早已經過緊新生活，你仲喺度死守？", "你以為自己係唯一？你只係其中一個名額。", "唔好再自憐，你咁樣真係好醜。", "佢對你嘅冷落，係因為你根本唔重要。", "醒啦，你嘅青春唔係用嚟浪費嘅。", "佢一早已經忘記你個樣，你仲喺度整容？", "你以為自己好長情？你只係好死腦筋。", "唔好再諗喇，佢唔會搵你。", "佢對你嘅殘忍，係要你識得轉身。", "醒啦，你唔係一個玩物。"
-        // (此處已備好300句邏輯，確保每次隨機不重樣)
+    // 語錄庫 (純廣東話，無數字)
+    const truths = [
+        "佢唔係忙，佢只係唔想理你呢個廢物。", "你以為係深情？喺佢眼中係騷擾呀。", "望下塊鏡，你宜家個樣真係好卑微。", "人哋一早換咗新伴侶，得你仲喺度守墓。", "佢連分手都廢事講，就係想你自己消失。", "你嘅執著，對佢嚟講只係負擔。", "佢宜家同第個打得火熱，你仲喺度凝住佢？", "你只係佢無聊時嘅消遣，唔好當自己係主角。", "再送多一條訊息，你就係狗。", "醒啦，佢無咗你生活得仲精彩。", "你嘅付出係你自願，人哋無義務要還。", "佢嘅冷暴力，就係想你自己識趣走人。", "你以為嘅回憶，人哋一早掉咗落垃圾桶。", "佢連頭像都換咗，你仲喺度解讀佢個簽名？", "唔好再等喇，佢根本無打算搵返你。", "佢唔覆你，係因為佢正同緊更重要嘅人傾偈。", "你嘅自我感動，對佢嚟講只係一個笑話。", "輸咗就認，唔好輸埋你個人格。", "你咁卑微，邊個會愛你？", "佢對你嘅好感一早過咗期，仲喺度等咩？"
     ];
 
-    function updateSystem() {
-        const target = document.getElementById('targetDate').value || "2026-05-30";
-        localStorage.setItem('mq_target', target);
+    function applyTimeErosion() {
+        const target = new Date(document.getElementById('targetDate').value || "2026-05-30");
+        const today = new Date();
+        const diffDays = Math.ceil((target - today) / 86400000);
+        const remain = Math.max(0, diffDays);
         
-        const diff = Math.ceil((new Date(target) - new Date()) / 86400000);
-        const daysLabel = document.getElementById('daysLabel');
-        const body = document.getElementById('mainBody');
+        document.getElementById('daysLabel').innerText = remain;
+        localStorage.setItem('mq_date', document.getElementById('targetDate').value);
+
+        // 【關鍵：計算漸變比例】
+        // ratio 為 0 (仲有好多日) -> 粉紅
+        // ratio 為 1 (到咗 0 日) -> 漸變黑紅
+        let ratio = 1 - (remain / maxDays);
+        if (ratio < 0) ratio = 0;
+        if (ratio > 1) ratio = 1;
+
+        const root = document.documentElement;
         
-        daysLabel.innerHTML = `${Math.max(0, diff)}<span>天</span>`;
-        
-        if (diff <= 0) {
-            // 【觸發漸變暗黑模式】
-            body.classList.add('dark-mode');
-            document.getElementById('statusTitle').innerText = "💀 醒覺期限已屆滿";
-            document.getElementById('headerTitle').innerText = "地獄醒覺模式";
-            document.getElementById('actionBtn').innerText = "🔥 接受地獄洗禮";
+        if (remain <= 0) {
+            // 徹底黑化
+            root.style.setProperty('--dynamic-bg', 'linear-gradient(180deg, #000000 0%, #3a0000 100%)');
+            root.style.setProperty('--dynamic-text', '#ffffff');
+            root.style.setProperty('--dynamic-accent', '#ff0000');
+            root.style.setProperty('--dynamic-card', '#1a1a1a');
+            document.getElementById('boxHint').innerText = "💀 終焉已至";
         } else {
-            body.classList.remove('dark-mode');
-            document.getElementById('statusTitle').innerText = "🎀 距離重生剩餘";
-            document.getElementById('headerTitle').innerText = "公主醒覺系統";
-            document.getElementById('actionBtn').innerText = "🪄 準備好落地獄未？";
+            // 動態侵蝕：隨日子愈近，背景愈深
+            const lightness = 95 - (85 * ratio); // 95% 變到 10%
+            const saturation = 100 - (100 * ratio); // 彩度消失
+            const accentRed = 255 - (100 * ratio); // 粉紅變深紅
+            
+            root.style.setProperty('--dynamic-bg', `hsl(0, ${saturation}%, ${lightness}%)`);
+            root.style.setProperty('--dynamic-text', `hsl(0, 0%, ${Math.max(10, 40 - (30*ratio))}%)`);
+            root.style.setProperty('--dynamic-accent', `rgb(${accentRed}, ${102 * (1-ratio)}, ${163 * (1-ratio)})`);
+            root.style.setProperty('--dynamic-card', `rgba(255, 255, 255, ${1 - (0.9 * ratio)})`);
+            document.getElementById('boxHint').innerText = "🎀 距離重生剩餘";
         }
     }
 
-    function processHell() {
-        if (!document.getElementById('userInput').value.trim()) return alert("未輸入幻覺，點落地獄？");
-        if (energyUsed < 5) {
-            energyUsed++;
-            localStorage.setItem('mq_energy', energyUsed);
-            renderTruth();
+    function checkReality() {
+        if (!document.getElementById('userInput').value.trim()) return;
+        if (usedCount < 5) {
+            usedCount++;
+            localStorage.setItem('mq_used', usedCount);
+            document.getElementById('energyStatus').innerText = `✨ 魔法能量：${5 - usedCount}`;
+            document.getElementById('truth-content').innerText = truths[Math.floor(Math.random() * truths.length)];
+            document.getElementById('truth-overlay').style.display = 'flex';
         } else {
             document.getElementById('pay-overlay').style.display = 'flex';
         }
     }
 
-    function renderTruth() {
-        document.getElementById('energyStatus').innerText = `✨ 魔法能量：${Math.max(0, 5 - energyUsed)}`;
-        const msg = library[Math.floor(Math.random() * library.length)];
-        document.getElementById('truth-text').innerText = msg;
-        document.getElementById('truth-overlay').style.display = 'flex';
-    }
-
-    function onFileSelect() {
-        const file = document.getElementById('upload').files[0];
-        if (file) {
-            document.getElementById('fileInfo').innerText = "已讀取截圖: " + file.name;
-            const sub = document.getElementById('submitPay');
-            sub.disabled = false;
-            sub.style.opacity = 1;
-        }
-    }
-
-    function verifyLoop() {
-        const btn = document.getElementById('submitPay');
-        btn.innerText = "⏳ 正在驗證 PayMe 賬單流水...";
-        btn.disabled = true;
-        
+    function resetEnergy() {
+        const btn = document.getElementById('subBtn');
+        btn.innerText = "⏳ 正在核對過數流水...";
         setTimeout(() => {
-            alert("✅ 支付核實通過！魔法能量已重置為 5 次。");
-            energyUsed = 0;
-            localStorage.setItem('mq_energy', 0);
+            usedCount = 0;
+            localStorage.setItem('mq_used', 0);
             location.reload();
         }, 3000);
     }
 
-    // 初始化
-    document.getElementById('targetDate').value = localStorage.getItem('mq_target') || "2026-05-30";
-    updateSystem();
+    // 初始化日期與顏色
+    document.getElementById('targetDate').value = localStorage.getItem('mq_date') || "2026-05-30";
+    applyTimeErosion();
 </script>
 </body>
 </html>
