@@ -8,6 +8,7 @@
         :root { --danger: #ff3333; --bg: #0a0a0a; --card: #1a1a1a; }
         * { box-sizing: border-box; font-family: "PingFang HK", "Microsoft JhengHei", sans-serif; -webkit-tap-highlight-color: transparent; }
         
+        /* 絕對無震動動畫 */
         body { background: var(--bg); color: white; margin: 0; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
         
         .app-container { width: 100%; max-width: 400px; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
@@ -15,6 +16,7 @@
 
         .card { width: 100%; background: var(--card); border: 1px solid #333; border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 20px; }
         
+        /* 除去所有箭嘴 */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .day-input { background: transparent; border: none; border-bottom: 2px solid var(--danger); color: var(--danger); font-size: 60px; width: 140px; text-align: center; outline: none; font-weight: bold; -moz-appearance: textfield; }
         
@@ -22,15 +24,16 @@
         
         .btn-hell { background: var(--danger); color: white; border: none; width: 100%; padding: 20px; border-radius: 50px; font-size: 20px; font-weight: 900; cursor: pointer; }
 
+        /* 彈窗：預設隱藏 */
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); color: var(--danger); z-index: 999; flex-direction: column; justify-content: center; align-items: center; padding: 40px; text-align: center; }
-        #content { font-size: 20px; font-weight: 900; line-height: 1.6; white-space: pre-wrap; }
+        #content { font-size: 22px; font-weight: 900; line-height: 1.6; white-space: pre-wrap; }
         
         #payArea { display: none; margin-top: 20px; }
         #payMePic { max-width: 250px; border: 1px solid #555; border-radius: 10px; margin-top: 15px; }
         
         .unlock-box { margin-top: 20px; display: flex; gap: 10px; width: 100%; }
-        .unlock-input { background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 10px; flex: 1; text-align: center; font-weight: bold; font-size: 18px; }
-        .btn-unlock { background: #fff; border: none; color: #000; padding: 10px 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .unlock-input { background: #222; border: 1px solid #444; color: white; padding: 12px; border-radius: 10px; flex: 1; text-align: center; font-weight: bold; }
+        .btn-unlock { background: #fff; border: none; color: #000; padding: 10px 15px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -49,15 +52,17 @@
 
 <div id="overlay">
     <div id="content"></div>
+    
     <div id="payArea">
         <div style="color:#fff; font-weight:bold;">買返個真相</div>
         <img id="payMePic" src="payme.png.jpeg">
-        <div style="margin-top: 15px; color: #888; font-size: 11px;">( Scan 後截圖傳回，領取今日解鎖碼 )</div>
+        <div style="margin-top: 10px; color: #888; font-size: 11px;">Scan 後截圖傳回，領取解鎖碼</div>
         <div class="unlock-box">
             <input type="text" id="unlockCode" class="unlock-input" placeholder="4位碼">
             <button class="btn-unlock" onclick="checkUnlock()">解鎖</button>
         </div>
     </div>
+    
     <div onclick="document.getElementById('overlay').style.display='none'" style="margin-top: 40px; color: #333; font-size: 11px; cursor: pointer;">( 點擊螢幕 返回現實 )</div>
 </div>
 
@@ -65,21 +70,22 @@
     let energy = 5;
     let sessionUnlocked = false;
 
-    function generateMagicCode() {
+    // 今日解鎖碼算法
+    function getMagicCode() {
         const d = new Date().getDate();
         return (d * 17 + 1024).toString().slice(-4); 
     }
 
     function checkUnlock() {
         const input = document.getElementById('unlockCode').value.trim();
-        if (input === generateMagicCode()) {
+        if (input === getMagicCode()) {
             sessionUnlocked = true;
-            alert("已成功解鎖真相！");
+            alert("已成功解鎖！");
             document.getElementById('overlay').style.display = 'none';
-            document.getElementById('ebText').innerText = "PREMIUM ACCESS";
+            document.getElementById('ebText').innerText = "VIP ACCESS";
             document.getElementById('ebText').style.color = "#ffd700";
         } else {
-            alert("密碼錯咗喎。");
+            alert("密碼錯咗。");
         }
     }
 
@@ -90,10 +96,12 @@
         const content = document.getElementById('content');
         const payArea = document.getElementById('payArea');
 
-        if (!msg) { alert("內容都唔寫？"); return; }
+        if (!msg) { alert("內容呢？"); return; }
 
-        overlay.style.display = "flex"; // 先開啟彈窗
+        // --- 第一步：強制顯示彈窗 ---
+        overlay.style.display = "flex";
 
+        // --- 第二步：判定顯示內容 ---
         if (d >= 40) {
             content.innerText = "你醒下啦，過 40 日根本就係浪費時間，精力，青春。你不如用呢啲時間充實下自己，搵過下家啦，話唔定人哋已經有人接咗手喇";
             payArea.style.display = "none";
