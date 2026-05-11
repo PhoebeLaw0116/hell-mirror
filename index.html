@@ -22,9 +22,12 @@
 
         .day-input { background: transparent; border: none; border-bottom: 2px solid var(--danger); color: var(--danger); font-size: 60px; width: 140px; text-align: center; outline: none; font-weight: bold; }
         
-        textarea { width: 100%; height: 80px; background: transparent; border: none; color: #ccc; font-size: 16px; outline: none; resize: none; text-align: center; }
+        #countdownDisplay { margin-top: 15px; font-size: 14px; color: #888; font-family: monospace; letter-spacing: 1px; }
         
-        .btn-hell { background: var(--danger); color: white; border: none; width: 100%; padding: 20px; border-radius: 50px; font-size: 20px; font-weight: 900; cursor: pointer; }
+        textarea { width: 100%; height: 80px; background: transparent; border: none; color: #ccc; font-size: 16px; outline: none; resize: none; text-align: center; margin-top: 10px; }
+        
+        .btn-hell { background: var(--danger); color: white; border: none; width: 100%; padding: 20px; border-radius: 50px; font-size: 20px; font-weight: 900; cursor: pointer; transition: transform 0.1s; }
+        .btn-hell:active { transform: scale(0.98); }
 
         #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); color: var(--danger); z-index: 999; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; }
         #content { font-size: 20px; font-weight: 900; line-height: 1.6; white-space: pre-wrap; margin-bottom: 20px; max-height: 60vh; overflow-y: auto; }
@@ -43,7 +46,8 @@
     <div class="status-bar" id="ebText">Free Trials: 5 / 5</div>
     <div class="card">
         <div style="font-size:11px; color:#666; margin-bottom:10px;">💔 執迷天數</div>
-        <input type="number" id="days" class="day-input" placeholder="0" oninput="autoCheck(this.value)">
+        <input type="number" id="days" class="day-input" placeholder="0" oninput="handleDateInput(this.value)">
+        <div id="countdownDisplay">請輸入天數開始倒數...</div>
     </div>
     <div class="card">
         <textarea id="msg" placeholder="寫低你仲有咩執迷不悟..."></textarea>
@@ -67,9 +71,10 @@
 <script>
     let energy = 5;
     let sessionUnlocked = false;
+    let timerInterval = null;
 
-    // 灌錄真相語錄 (為縮減代碼長度，此處僅展示結構，完整內容已植入)
-    const rawTruths = [
+    // 女皇金句庫 (完整植入) 
+    const femaleTruths = [
         "佢唔係忙，佢只係正同緊個比你更正、更聽話嘅女仔開緊房，連你個名都廢事提呀。",
         "望下塊鏡，你宜家呢副死魚樣，連你自己都唔愛，憑咩覺得佢會回頭愛返你？",
         "人哋一早換咗新伴侶，甚至連你陣味都嫌醜，得你仲喺度守住發霉紀錄等奇蹟。",
@@ -78,7 +83,7 @@
         "你只係佢無聊時嘅平價消遣，係佢搵唔到高級貨色嗰陣嘅贈品，明唔明白？",
         "醒啦！世界無咗邊個都照轉，佢無咗你之後轉得仲快、仲順、仲開心呀！",
         "你嘅存在對佢嚟講係一種污染，佢宜家正努力抹走所有關於你嘅痕跡，費事新歡見到。",
-        "佢對你冷暴力，其實係想睇下你個自尊心底線可以去到幾低，攞你嚟當笑話講。",
+        "佢對你用冷暴力，其實係想睇下你個自尊心底線可以去到幾低，攞你嚟當笑話講。",
         "輸咗就要認，唔好輸埋你最後嗰少少人格。你宜家死纏爛打嘅樣真係好核突。",
         "佢連你死咗都未必會去葬禮，甚至仲會喺嗰日同新歡慶祝重獲新生，擺脫你呢粒星。",
         "你以為自己係佢嘅港灣？其實你只係個臨時車位，人哋搵到有蓋長租位就即刻開走。",
@@ -104,7 +109,7 @@
         "人哋已經 Plan 緊新生活，你仲喺度數住以前嗰幾百蚊嘅人情債？你真係好肉酸呀。",
         "你每日發嗰句『早晨』，喺佢睇嚟係垃圾信息，佢連打開都覺得浪費電。",
         "佢同第個去大澳一日遊，你仲喺度幫佢諗藉口？你呢種自虐係無人會感動㗎。",
-        "你只係佢人生中一個唔小心踩到嘅煙頭，係完喇 冇味喇 咪掉左你囉!",
+        "你只係佢人生中一個唔小心踩到嘅煙頭，熄咗就掉，仲要踩多兩腳確保唔會燒返起。",
         "唔好再 FF 佢回頭，人哋正打算洗底做人地女朋友，你係佢最想抹殺嘅污點。",
         "你以為你嘅付出係投資？其實係將啲錢直接倒落鹹水海，仲要連聲響都無呀，傻hi！",
         "佢宜家同新歡親熱緊嗰陣，完全無諗過你呢個喺度喊到死死下嘅掃興鬼。",
@@ -113,8 +118,8 @@
         "你仲喺度研究佢個新 Threads 係咪暗示緊你？人哋只係純粹覺得嗰句歌詞型姐。",
         "佢唔回你 WhatsApp 但係狂出 IG Story，擺明就係話畀你聽：我嘅世界根本唔需要你。",
         "你喺度諗緊點樣變好去挽回？人哋宜家追求緊嘅係新鮮感，而唔係你嗰種『更好嘅舊嘢』。",
-        "望下你個朋友圈，日日發埋啲黑底圖配細字，人哋睇到只會覺得你真係好撚煩。",
-        "佢連最後一句『對唔住』都廢事講，就係因為佢覺得你連這三粒字都唔值，佢只想快啲甩身。",
+        "望下你個朋友圈，日日發埋啲傷感黑底圖配細字，人哋睇到只會覺得你真係好撚煩。",
+        "佢連最後一句『對唔住』都廢事講，就係因為佢覺得你連呢三粒字都唔值，佢只想快啲甩身。",
         "你嘅自尊心係咪一早已經畀狗食咗？卑微到求人愛你，你覺得呢種愛可以維持到聽日？",
         "佢宜家同新歡去咗你哋以前最想去嘅地方，唔係懷念，係因為嗰度真係好玩，而陪佢嗰個更好。",
         "你以為你嘅冷戰係一種博弈？醒啦，喺人哋眼中，你唔搵佢，簡直係執到寶，耳根清靜晒。",
@@ -124,7 +129,7 @@
         "佢宜家好快樂，因為佢生命中終於少咗你呢個負能量來源，佢嘅笑容先係發自內心呀。",
         "你以為深夜嗰個係思念？其實只係你寂寞犯賤，人哋一早同緊第個埋牙喇。",
         "你只係佢人生入面一個用完即棄嘅口罩，仲要有菌嗰隻，佢梗係即刻掉啦！",
-        "你以為你仲係佢心入面嗰根刺？其實人哋一早拔咗出嚟掉入垃圾箱，仲噴埋香水抹走你陣味。",
+        "你以為你仲係佢心入面嗰根刺？其實人哋一早拔咗出嚟掉入垃圾箱，仲噴埋清新劑呀。",
         "望下你宜家呢副怨婦樣，連你自己都嫌棄啦，憑咩要人哋回頭錫返你呢嚿發霉嘅肉？",
         "人哋宜家同新對象去睇戲食飯，你仲喺度守住個已經無咗你嘅聊天室發夢？醒啦！",
         "你嘅自尊心係咪一早已經掉咗落垃圾桶？卑微到咁，連鬼都唔想理你呀，知唔知醜？",
@@ -163,7 +168,7 @@
         "佢以前同你一齊懶得洗頭，宜家見新歡會噴香水，呢啲就係『在乎』嘅落差呀。",
         "你以為你嘅堅持係勇氣？其實係你唔敢面對新歡比你更優秀、更值得被愛嘅事實。",
         "人哋新歡求其發個 Story 佢都秒 Like，你就算生癌佢都未必會打開個對話框呀。",
-        "佢宜家同新歡講緊未來要生幾個細路，你仲喺度守住個唔存在嘅承諾？你真係好戇居。",
+        "佢宜家同新歡講緊未來要生幾個細路，你仲喺度作業個唔存在嘅承諾？你真係好戇居。",
         "人哋新歡一早入咗佢屋企門口，你仲喺度門外做緊個連保安都嫌煩嘅跟蹤狂？",
         "你以為你嘅冷戰係博弈？對佢同新歡嚟講，你唔搵佢哋簡直係執到寶，耳根清靜晒。",
         "望下你個朋友圈，日日發埋啲黑底圖，人哋新歡日日出陽光相，係人都鍾意新歡啦。",
@@ -236,7 +241,7 @@
         "唔好再喺 Threads 出埋啲傷感 Post，你要出就出你點樣努力賺錢、點樣變靚，等佢睇到咬碎牙齒。",
         "佢對你冷暴力係幫緊你斷捨離。感謝佢嘅殘酷，令你終於可以無牽無掛咁去追求更好嘅生活。",
         "你以為你輸咗？其實你贏咗成個未來呀！無咗個拖累你嘅男人，你知唔知你宜家嘅潛力有幾大？",
-        "望下你宜家個衰樣，連路人都想避開。行開下，飲下野，做返嗰個閃閃令嘅自己啦。",
+        "望下你宜家呢副衰樣，連路人都想避開。行開下，飲下野，做返嗰個閃閃令嘅自己啦。",
         "佢唔愛你係佢無眼光，你唔愛自己係你無腦。揀返個腦返嚟，好好計劃下點樣發達好過啦。",
         "你喺度研究人哋 IG Followers 變動，不如研究下聽日點樣可以賺多一千蚊？銀紙起碼唔會背叛你。",
         "人哋已經去咗新世界，你仲喺度守住個舊墳墓？拆咗個墓，喺上面起返座屬於你嘅商業大廈啦！",
@@ -273,7 +278,7 @@
         "你邊到有輸？係呀!你係輸左呀!不過你只係輸左一件連堆田區都唔要嘅垃圾!你已經WIN左大部份人啦",
         "件垃圾有人肯接盤你應該開心啦!狗都不如嘅人有寶咩!唔好再睇爛盤喇睇筍盤啦!",
         "你以為你係佢個前度清單入面嘅路人？咁你就要做個令佢一諗起就自慚形穢嘅傳奇路人。",
-        "望下你自己張銀行卡，存返多啲錢。人會變，但係頭等機票跟靚酒店永遠唔會令你失望。",
+        "望下你自己張銀行卡，存返多啲錢。人會變，但係頭等機票同靚酒店永遠唔會令你失望。",
         "佢宜家好快樂？咁你就要比佢快樂一百倍。你嘅快樂唔係建立喺佢身上，係建立喺你嘅成就感度。",
         "你以為深夜嗰個係思念？其實只係你寂寞。去報個班，去學樣嘢，令你自己忙到連佢個名都唔記得。",
         "佢唔回信息唔係因為忙，係因為佢唔值得。你咁貴，唔好再喺廉價嘅人身上浪費一秒鐘。",
@@ -281,7 +286,7 @@
         "如果你揀為啖氣同佢呢個0n9嘈，最好你就嘈到佢冇聲出!如果唔係，你連0n9都不如",
         "望下你宜家呢副怨婦樣，感情核凸，銀紙現實呀!搵錢好過啦",
         "一個呃蝦條，一個呃鳩夾，絕配啦!至高境界呀!你識條鐵咩!你應該希望佢地長長久久，等佢地唔好出黎為禍人間呀",
-        "如果佢話唔關我事嫁，係佢自己主動嫁，咁你就要諗下有幾撚荒謬!我未聽過貓唔食魚，唔好再俾條魚強姦返轉頭",
+        "如果佢話唔關我事嫁，係佢自己主動嫁，咁你就要諗下有幾撚荒謬!我未聽過貓唔食魚，仲要俾條魚強姦返轉頭",
         "佢都幾痴線嫁喎!不過你仲勁!咁撚痴線嘅人你都等得落，你不如直接入青山仲快過你等佢",
         "唔好再睇佢個死賤種喇，留返對眼去睇一D令人對眼懷孕嘅野啦，唔好再睇會令自己眼睛流產嘅野喇",
         "你以為你嘅沈默會令佢不安？其實你嘅成功先會令佢絕望。去成功畀佢睇，唔係為咗佢，係為咗你。",
@@ -303,6 +308,8 @@
         "望下你自己張銀行卡，再望下你自己。你有手有腳有腦，憑咩要為咗一個廢物喺度喊？",
         "人哋已經 Plan 緊新生活？咁你就要 Plan 緊點樣驚艷全場。你嘅劇本，由今日開始要改寫！",
         "大家嘅家庭觀都唔同，做乜要委屈自己迎合佢呢，你咁樣咪同你自己過唔去囉",
+        "唔好再喺 Threads 出埋啲傷感 Post，你要出就出你點樣努力賺錢、點樣變靚，等佢睇到咬碎牙齒。",
+        "佢對你冷暴力係幫緊你斷捨離。感謝佢嘅殘酷，令你終於可以無牽無掛咁去追求更好嘅生活。",
         "我俾你贏返個男人，輸哂身邊所有一切嘅家人同朋友，你覺得呢個男人仲係咪你贏返黎？你輸得一敗涂地",
         "你揸住隻杯，我一直加熱水落去啦，痛你就會放手嫁啦!唔好再傻落去喇",
         "你仲喺度諗點樣感動佢？你宜家個樣根本係驚動緊全人類呀！成陣死老鼠味，邊個會想愛你呀？",
@@ -315,10 +322,10 @@
         "醒下啦！你連自己個人生都搞唔掂，憑咩要人憐憫你？你呢種自棄嘅人，連乞兒都唔想同你行埋呀！",
         "你再唔清醒去賺錢、去改變，你就一世喺呢個垃圾堆入面發霉。到時人哋同新歡生仔，你仲喺度數緊舊債！",
         "唔好再喺度流馬尿，你啲眼淚連一公升水都換唔到。去健身房流汗啦，起碼可以令你望落去似返個人！",
-        "你以為你嘅冷戰係博弈？對佢嚟講，你唔搵佢簡直係祖宗保佑。你仲喺度 FF 佢會不安？醒啦戇居！",
+        "你以為你嘅冷戰係博弈？對佢嚟講，你唔搵佢簡集係祖宗保佑。你仲喺度 FF 佢會不安？醒啦戇居！",
         "佢對你講嗰句『對唔住』，係想你快啲消失呀！你仲攞住呢句廢話當係寶？你個腦係咪攞去餵魚呀？",
         "望下你自己張銀行卡，你連買份保險嘅錢都無，仲喺度諗埋晒啲情情塔塔？蠢仆街先係你最大嘅地獄呀！",
-        "你以為你嘅離開會令佢醒覺？佢只會慶幸終於甩咗你呢個負資產，佢宜家簡直係重生呀，明唔分？",
+        "你以為你嘅離開會令佢醒覺？佢只會慶幸終於甩咗你呢個負資產，佢宜家簡直係重生呀，明唔明？",
         "人哋已經換咗幾輪新對象，你仲喺度守住個已經臭咗嘅聊天室？你係咪想搞到自己連鬼都嫌你煩呀？",
         "你嘅自尊心係咪一早已經畀狗食咗？去執返佢，洗乾淨，做個唔依附任何人嘅人，嗰陣你先係人！",
         "最後一次警告你：你再咁樣落去，你連落地獄嘅資格都無。起身！去賺錢！去變強！去驚艷全世界呀！",
@@ -327,18 +334,15 @@
         "醒下啦！唔好再為咗個垃圾浪費你嘅生命。去發瘋咁樣進步，等佢有一日見到你，要跪喺度求你睇佢一眼！"
     ];
 
-    // 洗牌池
     let shuffledTruths = [];
 
     function shuffleTruths() {
-        shuffledTruths = [...rawTruths];
+        shuffledTruths = [...femaleTruths];
         for (let i = shuffledTruths.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffledTruths[i], shuffledTruths[j]] = [shuffledTruths[j], shuffledTruths[i]];
         }
     }
-
-    // 初始化洗牌
     shuffleTruths();
 
     function getMagicCode() {
@@ -346,21 +350,56 @@
         return (d * 17 + 1024).toString().slice(-4); 
     }
 
-    function autoCheck(val) {
+    // 處理輸入：動態倒數 + 40日攔截
+    function handleDateInput(val) {
         const d = parseInt(val) || 0;
+        clearInterval(timerInterval);
+        
         if (d >= 40) {
-            const overlay = document.getElementById('overlay');
-            const content = document.getElementById('content');
-            const payArea = document.getElementById('payArea');
-            content.innerText = "你醒下啦，過 40 日根本就係浪費時間，精力，青春。你不如用呢啲時間充實下自己，搵過下家啦，話唔定人哋已經有人接咗手喇";
-            payArea.style.display = "none";
-            overlay.style.display = "flex";
+            document.getElementById('countdownDisplay').innerText = "💀 醒下啦！";
+            triggerHell("你醒下啦，過 40 日根本就係浪費時間，精力，青春。你不如用呢啲時間充實下自己，搵過下家啦，話唔定人哋已經有人接咗手喇");
+            return;
         }
+
+        if (d <= 0) {
+            document.getElementById('countdownDisplay').innerText = "請輸入天數開始倒數...";
+            return;
+        }
+
+        let secondsRemaining = d * 24 * 60 * 60;
+        updateTimerText(secondsRemaining);
+
+        timerInterval = setInterval(() => {
+            secondsRemaining--;
+            if (secondsRemaining <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('countdownDisplay').innerText = "執迷已完，你重生未？";
+                return;
+            }
+            updateTimerText(secondsRemaining);
+        }, 1000);
+    }
+
+    function updateTimerText(totalSeconds) {
+        const days = Math.floor(totalSeconds / (24 * 3600));
+        const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+        const mins = Math.floor((totalSeconds % 3600) / 60);
+        const secs = totalSeconds % 60;
+        document.getElementById('countdownDisplay').innerText = 
+            `${days}天 ${hours}時 ${mins}分 ${secs}秒`;
+    }
+
+    function triggerHell(text) {
+        const overlay = document.getElementById('overlay');
+        const content = document.getElementById('content');
+        const payArea = document.getElementById('payArea');
+        content.innerText = text;
+        payArea.style.display = "none";
+        overlay.style.display = "flex";
     }
 
     function checkUnlock() {
-        const input = document.getElementById('unlockCode').value.trim();
-        if (input === getMagicCode()) {
+        if (document.getElementById('unlockCode').value.trim() === getMagicCode()) {
             sessionUnlocked = true;
             alert("真相已解鎖！");
             document.getElementById('overlay').style.display = 'none';
@@ -378,7 +417,7 @@
         const content = document.getElementById('content');
         const payArea = document.getElementById('payArea');
 
-        if (d >= 40) { autoCheck(d); return; }
+        if (d >= 40) { handleDateInput(d); return; }
         if (!msg) { alert("內容呢？"); return; }
 
         overlay.style.display = "flex";
@@ -387,14 +426,8 @@
             content.innerText = "💔 免費額度已用完";
             payArea.style.display = "block";
         } else {
-            // 如果洗牌池空咗，重新洗牌
-            if (shuffledTruths.length === 0) {
-                shuffleTruths();
-            }
-            
-            // 每次抽一句出嚟，抽完就喺池入面剷走，保證唔重複
-            const truth = shuffledTruths.pop();
-            content.innerText = truth;
+            if (shuffledTruths.length === 0) shuffleTruths();
+            content.innerText = shuffledTruths.pop();
             payArea.style.display = "none";
             
             if (!sessionUnlocked) {
